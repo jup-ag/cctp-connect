@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+dialog {
+  margin: 0;
+  padding: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+}
