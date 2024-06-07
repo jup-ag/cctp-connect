@@ -1,176 +1,205 @@
 import EthereumWalletConnectButton from '@/components/EthereumWalletConnectButton';
 import SolanaWalletConnectButton from '@/components/SolanaWalletConnectButton';
+import { DEFAULT_BLOCKCHAIN_DELAY } from '@/constants';
 import { Chain, DestinationDomain, SupportedChainId } from '@/constants/chains';
-import { DEFAULT_DECIMALS } from '@/constants/tokens';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import useTokenAllowance from '@/hooks/useTokenAllowance';
-import useTokenApproval from '@/hooks/useTokenApproval';
-import useTokenBalance from '@/hooks/useTokenBalance';
-import useTokenMessenger from '@/hooks/useTokenMessenger';
-import {
-  SOLANA_USDC_ADDRESS,
-  createProvider,
-  getOrCreateATAInstruction,
-} from '@/solana-program/util';
+import { useEVMCCTP } from '@/hooks/useEvmCCTP';
+import { useEvmUSDCAllowance } from '@/hooks/useEvmUSDCAllowance';
+import { useEvmUSDCBalance } from '@/hooks/useEvmUSDCBalance';
+import useMessageTransmitter from '@/hooks/useMessageTransmitter';
+import { useSolanaCCTP } from '@/hooks/useSolanaCCTP';
+import { useSolanaUSDCBalance } from '@/hooks/useSolanaUSDCBalance';
+import { useTransactions } from '@/hooks/useTransactions';
 import { getAddressAbbreviation } from '@/utils';
-import {
-  getTokenMessengerContractAddress,
-  getUSDCContractAddress,
-} from '@/utils/addresses';
-import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { getUSDCContractAddress } from '@/utils/addresses';
 import { useWallet } from '@jup-ag/wallet-adapter';
 import { useMutation } from '@tanstack/react-query';
 import { useWeb3React } from '@web3-react/core';
-import { BigNumber } from 'ethers';
-import { Bytes, formatUnits, hexlify, parseUnits } from 'ethers/lib/utils';
-import React, { useEffect, useMemo, useState } from 'react';
-import { PublicKey } from '@solana/web3.js';
-import { Connection } from '@solana/web3.js';
-import { receiveMessage } from '@/solana-program/program';
-
-type Transaction = {
-  fromDomain: number;
-  toAddress: string;
-  usdcAddress: string;
-  amount: number;
-  messageBytes: Bytes;
-  signature: string;
-};
+import clsx from 'clsx';
+import React, { useState } from 'react';
 
 const Transfer: React.FC = () => {
-  const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
-    'pending-transactions',
-    []
-  );
-  const { account, chainId, error, active } = useWeb3React();
-  const [selectedChain, setSelectedChain] = useState(Chain.ETH);
+  const evmCCTP = useEVMCCTP();
+  const solanaCCTP = useSolanaCCTP();
+  const [isSwapped, setIsSwapped] = useState(false);
+  const [selectedEvmChain, setSelectedEvmChain] = useState(Chain.ETH);
+  const { account, chainId, error } = useWeb3React();
   const solanaWallet = useWallet();
-  const provider = useMemo(() => {
-    const connection = new Connection('https://api.devnet.solana.com');
-    const provider = createProvider(solanaWallet, connection, {
-      commitment: 'confirmed',
-    });
+  const selectedChainId = SupportedChainId[selectedEvmChain];
+  const [amount, setAmount] = useState('');
 
-    return provider;
-  }, [solanaWallet]);
+  const { data: evmUSDCBalance, refetch: refetchEvmUSDCBalance } =
+    useEvmUSDCBalance();
 
-  const USDC_ADDRESS = getUSDCContractAddress(chainId);
-  const TOKEN_MESSENGER_ADDRESS = getTokenMessengerContractAddress(chainId);
+  const { data: solanaUSDCBalance, refetch: refetchSolanaUSDCBalance } =
+    useSolanaUSDCBalance();
 
-  const [amountToSend, setAmountToSend] = useState('');
-  const { amount: approvedAmountBN, refetch: refetchApprovedAmount } =
-    useTokenAllowance(USDC_ADDRESS, account ?? '', TOKEN_MESSENGER_ADDRESS);
+  const { data: usdcAllowance, refetch: refetchUSDCAllowance } =
+    useEvmUSDCAllowance();
 
-  const balance = useTokenBalance(USDC_ADDRESS, account ?? '');
+  const { transactions, addTransaction, removeTransaction } = useTransactions(
+    isSwapped ? selectedEvmChain : Chain.SOLANA,
+    isSwapped ? account! : solanaWallet?.publicKey?.toBase58()
+  );
 
-  const usdcBalance = useMemo(() => {
-    if (account && active) {
-      return Number(formatUnits(balance, DEFAULT_DECIMALS));
-    }
-    return 0;
-  }, [account, active, balance]);
+  const { mutate: approve, isPending: isApproving } = useMutation({
+    mutationFn: async (amount: string) => {
+      if (!Number(amount) || isSwapped || !evmCCTP) {
+        throw new Error('Not valid');
+      }
 
-  const { approve } = useTokenApproval(USDC_ADDRESS, TOKEN_MESSENGER_ADDRESS);
-  const { depositForBurn } = useTokenMessenger(chainId);
+      const transaction = await evmCCTP.approve({
+        amount: Number(amount),
+        chain: selectedEvmChain,
+      });
 
-  const { mutate: handleApprove, isPending: isApproving } = useMutation({
-    mutationFn: async () => {
-      const amountToApprove: BigNumber = parseUnits('9', DEFAULT_DECIMALS);
+      const { hash } = transaction;
 
-      await approve(amountToApprove);
+      return new Promise<boolean>((resolve, reject) => {
+        const interval = setInterval(async () => {
+          try {
+            const transactionReceipt = await evmCCTP.getTransactionReceipt(
+              hash
+            );
+            if (transactionReceipt != null) {
+              const { status } = transactionReceipt;
+              // Success
+              if (status === 1) {
+                clearInterval(interval);
+                resolve(true);
+              }
+            }
+          } catch (e) {
+            clearInterval(interval);
+            reject(false);
+          }
+        }, DEFAULT_BLOCKCHAIN_DELAY);
+      });
     },
   });
 
-  const { mutate: handleTransfer, isPending: isTranfering } = useMutation({
-    mutationFn: async () => {
-      if (!solanaWallet.publicKey) {
+  const { mutate: depositForBurn, isPending: isDepositing } = useMutation({
+    mutationFn: async (amount: string) => {
+      if (
+        (!Number(amount) && isSwapped && !solanaCCTP) ||
+        (!isSwapped && (!evmCCTP || !account))
+      ) {
         return;
       }
-      const amount: BigNumber = parseUnits(amountToSend, DEFAULT_DECIMALS);
 
-      const [userATA] = await getOrCreateATAInstruction(
-        new PublicKey(SOLANA_USDC_ADDRESS),
-        provider.wallet.publicKey,
-        provider.connection,
-        true
-      );
+      let result: string;
 
-      const response = await depositForBurn(
-        amount,
-        DestinationDomain.SOLANA,
-        hexlify(bs58.decode(userATA.toBase58())),
-        USDC_ADDRESS
-      );
+      if (isSwapped) {
+        result = await solanaCCTP.depositForBurn({
+          destinationDomain: DestinationDomain[selectedEvmChain],
+          amount: Number(amount),
+          recipient: account!,
+        });
+      } else {
+        const [recipient] = await solanaCCTP.getOrCreateUSDCATAInstruction();
+        result = await evmCCTP!.depositForBurn({
+          amount: Number(amount),
+          chain: selectedEvmChain,
+          recipient: recipient.toBase58(),
+        });
+      }
+      return {
+        hash: result,
+        fromChain: isSwapped ? Chain.SOLANA : selectedEvmChain,
+        toChain: !isSwapped ? Chain.SOLANA : selectedEvmChain,
+        amount: Number(amount),
+        recipient: isSwapped ? account! : solanaWallet.publicKey!.toBase58(),
+      };
+    },
+  });
 
-      if (response) {
-        setTransactions([
-          ...transactions,
-          {
-            amount: Number(amountToSend),
-            fromDomain: DestinationDomain[selectedChain],
-            messageBytes: response.messageBytes,
-            signature: response.signature,
-            usdcAddress: USDC_ADDRESS,
-            toAddress: solanaWallet.publicKey?.toBase58(),
-          },
-        ]);
+  const { mutate: receiveMessage, isPending: isReceiving } = useMutation({
+    mutationFn: async ({
+      message,
+      attestation,
+      fromChain,
+      toChain,
+    }: {
+      message: string;
+      attestation: string;
+      fromChain: Chain;
+      toChain: Chain;
+    }) => {
+      if (toChain === Chain.SOLANA && solanaCCTP) {
+        return solanaCCTP.receiveMessage({
+          attestation,
+          message,
+          remoteDomain: DestinationDomain[fromChain].toString(),
+          remoteUSDCAddressHex: getUSDCContractAddress(
+            SupportedChainId[fromChain]
+          ),
+        });
+      }
+
+      if (toChain !== Chain.SOLANA && evmCCTP && account) {
+        return evmCCTP.receiveMessage({
+          message,
+          attestation,
+          chain: toChain,
+        });
       }
     },
   });
-
-  const { mutate: handleReceive, isPending: isReceving } = useMutation({
-    mutationFn: async (transaction: Transaction) => {
-      await receiveMessage(
-        provider,
-        transaction.usdcAddress,
-        transaction.fromDomain.toString(),
-        transaction.messageBytes + '',
-        transaction.signature
-      );
-    },
-  });
-
-  const approvedAmount = useMemo(
-    () => formatUnits(approvedAmountBN, DEFAULT_DECIMALS),
-    [approvedAmountBN]
-  );
-
-  const selectedChainId = SupportedChainId[selectedChain];
 
   return (
     <div className="flex flex-col items-center p-10">
       <div className="w-full max-w-lg space-y-6">
-        <div className="flex space-x-4 ">
-          <select
-            value={selectedChain}
-            onChange={(e) => setSelectedChain(e.target.value as Chain)}
-            className="select select-bordered w-full max-w-xs"
+        <div
+          className={clsx(
+            'flex flex-col space-y-6',
+            isSwapped && '!flex-col-reverse space-y-reverse'
+          )}
+        >
+          <div className="space-y-6">
+            <div className="flex space-x-4 ">
+              <select
+                value={selectedEvmChain}
+                onChange={(e) => setSelectedEvmChain(e.target.value as Chain)}
+                className="select select-bordered w-full max-w-xs"
+              >
+                <option value={Chain.ETH}>Ethereum Sepolia</option>
+                <option value={Chain.OPTIMISM}>Optimism Sepolia</option>
+                <option value={Chain.BASE}>Base Sepolia</option>
+                <option value={Chain.ARB}>Arb Sepolia</option>
+              </select>
+              {chainId === selectedChainId && account ? (
+                <p className="self-center">{getAddressAbbreviation(account)}</p>
+              ) : (
+                <EthereumWalletConnectButton chainId={selectedChainId} />
+              )}
+            </div>
+            {error && <div className="flex text-red-500">{error?.message}</div>}
+            <div>Balance: {evmUSDCBalance || '-'} USDC</div>
+          </div>
+
+          <button
+            onClick={() => {
+              setIsSwapped((s) => !s);
+            }}
+            className="btn"
           >
-            <option value={Chain.ETH}>Ethereum Sepolia</option>
-            <option value={Chain.OPTIMISM}>Optimism Sepolia</option>
-            <option value={Chain.BASE}>Base Sepolia</option>
-            <option value={Chain.ARB}>Arb Sepolia</option>
-          </select>
-          {chainId === selectedChainId && account ? (
-            <p className="self-center">{getAddressAbbreviation(account)}</p>
-          ) : (
-            <EthereumWalletConnectButton chainId={selectedChainId} />
-          )}
-        </div>
+            Swap
+          </button>
 
-        {error && <div className="flex text-red-500">{error?.message}</div>}
-
-        <div className="flex space-x-4">
-          <select className="select select-bordered w-full max-w-xs">
-            <option value={SupportedChainId.SOLANA}>Solana</option>
-          </select>
-          {solanaWallet.publicKey ? (
-            <p className="self-center">
-              {getAddressAbbreviation(solanaWallet.publicKey?.toBase58())}
-            </p>
-          ) : (
-            <SolanaWalletConnectButton />
-          )}
+          <div className="space-y-6">
+            <div className="flex space-x-4">
+              <select className="select select-bordered w-full max-w-xs">
+                <option value={SupportedChainId.SOLANA}>Solana</option>
+              </select>
+              {solanaWallet.publicKey ? (
+                <p className="self-center">
+                  {getAddressAbbreviation(solanaWallet.publicKey?.toBase58())}
+                </p>
+              ) : (
+                <SolanaWalletConnectButton />
+              )}
+            </div>
+            <div>Balance: {solanaUSDCBalance || '-'} USDC</div>
+          </div>
         </div>
 
         <div className="flex space-x-4">
@@ -178,77 +207,83 @@ const Transfer: React.FC = () => {
             type="number"
             placeholder="Amount"
             className="input input-bordered w-full max-w-xs"
-            value={amountToSend}
-            onChange={(e) => setAmountToSend(e.target.value)}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
           />
-          {approvedAmount &&
-          amountToSend &&
-          Number(amountToSend) <= Number(approvedAmount) ? (
+          {isSwapped ||
+          (usdcAllowance && amount && Number(amount) <= usdcAllowance) ? (
             <button
               disabled={
-                !amountToSend ||
-                !approvedAmount ||
+                !amount ||
+                !usdcAllowance ||
                 !solanaWallet.publicKey ||
-                isTranfering
+                isDepositing
               }
               className="btn"
               onClick={() => {
-                handleTransfer(undefined, {
-                  onSuccess: () => {
-                    refetchApprovedAmount();
-                    alert('Approved successfully');
+                depositForBurn(amount, {
+                  onSuccess: (data) => {
+                    refetchUSDCAllowance();
+                    setAmount('');
+                    if (data) {
+                      addTransaction({
+                        ...data,
+                        message: '',
+                        attestation: '',
+                        readyToRedeem: false,
+                      });
+                    }
+                    alert('Transfered successfully');
                   },
                 });
               }}
             >
-              {isTranfering ? 'Transfering' : 'Transfer'}
+              {isDepositing ? 'Transfering' : 'Transfer'}
             </button>
           ) : (
             <button
               onClick={() => {
-                handleApprove(undefined, {
+                approve(amount, {
                   onSuccess: () => {
-                    refetchApprovedAmount();
-                    alert('Transferred successfully');
+                    refetchUSDCAllowance();
+                    alert('Approved successfully');
                   },
                 });
               }}
-              disabled={
-                !amountToSend ||
-                !approvedAmount ||
-                !solanaWallet.publicKey ||
-                isApproving
-              }
+              disabled={!amount || !solanaWallet.publicKey || isApproving}
               className="btn"
             >
               {isApproving ? 'Approving' : 'Approve'}
             </button>
           )}
         </div>
-        <div>USDC balance: {usdcBalance}</div>
         <div>
           {transactions.map((transaction) => {
             return (
-              <div key={transaction.signature}>
+              <div
+                key={transaction.hash}
+                className="flex items-center space-x-2"
+              >
+                <p>Redeem {transaction.amount} USDC</p>
                 <button
                   className="btn"
                   onClick={() => {
-                    handleReceive(transaction, {
+                    receiveMessage(transaction, {
                       onSuccess: () => {
                         alert('Redeemed successfully');
-                        setTransactions((transactions) =>
-                          transactions.filter(
-                            (t) => t.signature !== transaction.signature
-                          )
-                        );
+                        removeTransaction(transaction.hash);
+                        refetchEvmUSDCBalance();
+                        refetchSolanaUSDCBalance();
                       },
                     });
                   }}
-                  disabled={isReceving}
+                  disabled={isReceiving || !transaction.readyToRedeem}
                 >
-                  {isReceving
+                  {!transaction.readyToRedeem
+                    ? 'Pending'
+                    : isReceiving
                     ? 'Redeeming'
-                    : `Redeem ${transaction.amount} USDC`}
+                    : `Redeem`}
                 </button>
               </div>
             );

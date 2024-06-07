@@ -52,7 +52,7 @@ const useTokenApproval = (
 
               const transactionReceipt = await getTransactionReceipt(hash);
               if (transactionReceipt != null) {
-                const { status, logs } = transactionReceipt;
+                const { status } = transactionReceipt;
                 // Success
                 if (status === 1) {
                   clearInterval(interval);

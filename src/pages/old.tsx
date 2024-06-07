@@ -17,7 +17,6 @@ import useTokenAllowance from '@/hooks/useTokenAllowance';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { UnifiedWalletButton, useWallet } from '@jup-ag/wallet-adapter';
 import { createProvider } from '@/solana-program/util';
-import { receiveMessage } from '@/solana-program/program';
 import { Connection } from '@solana/web3.js';
 
 export const injected = new InjectedConnector({

@@ -72,8 +72,6 @@ const useTokenMessenger = (
                 reject(null);
               }
 
-              console.log('polling transaction receipt');
-
               const transactionReceipt = await getTransactionReceipt(hash);
               if (transactionReceipt != null) {
                 const { status, logs } = transactionReceipt;
@@ -99,8 +97,6 @@ const useTokenMessenger = (
           });
         })
         .then(({ messageBytes, messageHash, hash }) => {
-          console.log({ messageBytes, messageHash, hash });
-
           return new Promise<{
             signature: string;
             messageBytes: Bytes;
@@ -110,8 +106,6 @@ const useTokenMessenger = (
                 clearInterval(interval);
                 reject(null);
               }
-
-              console.log('polling getAttestation');
 
               const attestation = await getAttestation(messageHash);
               if (attestation != null) {

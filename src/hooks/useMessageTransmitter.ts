@@ -34,6 +34,11 @@ const useMessageTransmitter = (chainId: SupportedChainId | undefined) => {
         MESSAGE_TRANSMITTER_CONTRACT_ADDRESS,
         library.getSigner()
       );
+      console.log(
+        chainId,
+        MESSAGE_TRANSMITTER_CONTRACT_ADDRESS,
+        library.getSigner()
+      );
 
       return await contract
         .receiveMessage(message, signature)

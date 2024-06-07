@@ -2,8 +2,14 @@ import * as anchor from '@coral-xyz/anchor';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { hexlify } from 'ethers/lib/utils';
 
-import { IDL as MessageTransmitterIDL, MessageTransmitter } from './m';
-import { IDL as TokenMessengerMinterIDL, TokenMessengerMinter } from './t';
+import {
+  IDL as MessageTransmitterIDL,
+  MessageTransmitter,
+} from './types/MessageTransmitter';
+import {
+  IDL as TokenMessengerMinterIDL,
+  TokenMessengerMinter,
+} from './types/TokenMessengerMinter';
 
 import { WalletContextState } from '@jup-ag/wallet-adapter';
 import {
@@ -17,6 +23,7 @@ import {
   PublicKey,
   TransactionInstruction,
 } from '@solana/web3.js';
+import Decimal from 'decimal.js';
 
 export const IRIS_API_URL =
   process.env.IRIS_API_URL ?? 'https://iris-api-sandbox.circle.com';
@@ -214,28 +221,28 @@ export const findProgramAddress = (
 
 // Fetches attestation from attestation service given the txHash
 export const getMessages = async (txHash: string) => {
-  console.log('Fetching messages for tx...', txHash);
-  let attestationResponse: any = {};
-  while (
-    attestationResponse.error ||
-    !attestationResponse.messages ||
-    attestationResponse.messages?.[0]?.attestation === 'PENDING'
-  ) {
-    const response = await fetch(
-      `${IRIS_API_URL}/messages/${SOLANA_SRC_DOMAIN_ID}/${txHash}`
-    );
-    attestationResponse = await response.json();
-    // Wait 2 seconds to avoid getting rate limited
-    if (
-      attestationResponse.error ||
-      !attestationResponse.messages ||
-      attestationResponse.messages?.[0]?.attestation === 'PENDING'
-    ) {
-      await new Promise((r) => setTimeout(r, 2000));
-    }
+  const res = await fetch(
+    `${IRIS_API_URL}/messages/${SOLANA_SRC_DOMAIN_ID}/${txHash}`
+  );
+
+  if (!res.ok) {
+    return null;
   }
 
-  return attestationResponse;
+  const attestationResponse = await res.json();
+
+  if (
+    !attestationResponse.error &&
+    attestationResponse.messages &&
+    attestationResponse.messages?.[0]?.attestation !== 'PENDING'
+  ) {
+    return attestationResponse.messages[0] as {
+      attestation: string;
+      message: string;
+    };
+  }
+
+  return null;
 };
 
 export const decodeEventNonceFromMessage = (messageHex: string): string => {
@@ -267,8 +274,6 @@ export const getOrCreateATAInstruction = async (
   allowOwnerOffCurve = false,
   payer = owner
 ): Promise<[PublicKey, TransactionInstruction?]> => {
-  console.log(payer.toBase58());
-
   let toAccount;
   try {
     toAccount = await Token.getAssociatedTokenAddress(
@@ -297,3 +302,25 @@ export const getOrCreateATAInstruction = async (
     throw e;
   }
 };
+
+export function fromLamports(
+  lamportsAmount: anchor.BN | number | bigint | string,
+  decimals: number
+): number {
+  return new Decimal(lamportsAmount.toString())
+    .div(10 ** decimals)
+    .toDP(decimals, Decimal.ROUND_DOWN)
+    .toNumber();
+}
+
+export function toLamports(
+  amount: anchor.BN | number,
+  decimals: number
+): anchor.BN {
+  return new anchor.BN(
+    new Decimal(amount.toString())
+      .mul(10 ** decimals)
+      .floor()
+      .toNumber()
+  );
+}
