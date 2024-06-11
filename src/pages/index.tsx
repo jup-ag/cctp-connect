@@ -1,16 +1,14 @@
 import EthereumWalletConnectButton from '@/components/EthereumWalletConnectButton';
 import SolanaWalletConnectButton from '@/components/SolanaWalletConnectButton';
 import { DEFAULT_BLOCKCHAIN_DELAY } from '@/constants';
-import { Chain, DestinationDomain, SupportedChainId } from '@/constants/chains';
+import { Chain, DestinationDomain, SupportedChainId } from '@/constants';
 import { useEVMCCTP } from '@/hooks/useEvmCCTP';
 import { useEvmUSDCAllowance } from '@/hooks/useEvmUSDCAllowance';
 import { useEvmUSDCBalance } from '@/hooks/useEvmUSDCBalance';
-import useMessageTransmitter from '@/hooks/useMessageTransmitter';
 import { useSolanaCCTP } from '@/hooks/useSolanaCCTP';
 import { useSolanaUSDCBalance } from '@/hooks/useSolanaUSDCBalance';
 import { useTransactions } from '@/hooks/useTransactions';
-import { getAddressAbbreviation } from '@/utils';
-import { getUSDCContractAddress } from '@/utils/addresses';
+import { getAddressAbbreviation, getUSDCContractAddress } from '@/utils';
 import { useWallet } from '@jup-ag/wallet-adapter';
 import { useMutation } from '@tanstack/react-query';
 import { useWeb3React } from '@web3-react/core';

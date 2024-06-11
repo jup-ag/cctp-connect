@@ -1,12 +1,8 @@
-import { useWeb3React } from '@web3-react/core';
-import type { Web3Provider } from '@ethersproject/providers';
 import { useQuery } from '@tanstack/react-query';
-import { useEVMCCTP } from './useEvmCCTP';
-import { formatUnits } from 'ethers/lib/utils';
-import { DEFAULT_DECIMALS } from '@/constants/tokens';
+import { DEFAULT_DECIMALS } from '@/constants';
 import { useSolanaCCTP } from './useSolanaCCTP';
 import { useWallet } from '@jup-ag/wallet-adapter';
-import { fromLamports } from '@/solana-program/util';
+import { fromLamports } from '@/programs/solana-program/util';
 
 export function useSolanaUSDCBalance() {
   const wallet = useWallet();

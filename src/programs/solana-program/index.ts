@@ -16,7 +16,7 @@ import {
 import { MessageTransmitter } from './types/MessageTransmitter';
 import { TokenMessengerMinter } from './types/TokenMessengerMinter';
 import { utils } from 'ethers';
-import { DEFAULT_DECIMALS } from '@/constants/tokens';
+import { DEFAULT_DECIMALS } from '@/constants';
 
 export const receiveMessage = async (
   provider: AnchorProvider,

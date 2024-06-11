@@ -1,9 +1,14 @@
-import { Chain, DestinationDomain, SupportedChainId } from '@/constants/chains';
+import {
+  Chain,
+  DestinationDomain,
+  SupportedChainId,
+  DEFAULT_DECIMALS,
+} from '@/constants';
 import {
   getMessageTransmitterContractAddress,
   getTokenMessengerContractAddress,
   getUSDCContractAddress,
-} from '@/utils/addresses';
+} from '@/utils';
 import type { Web3Provider } from '@ethersproject/providers';
 import {
   Erc20__factory,
@@ -12,7 +17,6 @@ import {
 } from './types';
 import { MaxUint256 } from '@ethersproject/constants';
 import { parseUnits, hexlify } from 'ethers/lib/utils';
-import { DEFAULT_DECIMALS } from '@/constants/tokens';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 
 export class EvmCCTP {

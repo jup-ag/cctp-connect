@@ -2,7 +2,7 @@ import { useWeb3React } from '@web3-react/core';
 
 import type { Web3Provider } from '@ethersproject/providers';
 import { useMemo } from 'react';
-import { EvmCCTP } from '@/evm-program';
+import { EvmCCTP } from '@/programs/evm-program';
 
 export function useEVMCCTP() {
   const { library } = useWeb3React<Web3Provider>();

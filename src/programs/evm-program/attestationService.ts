@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-import { IRIS_ATTESTATION_API_URL } from '@/constants/index';
+import { IRIS_ATTESTATION_API_URL } from '@/constants';
 
 export enum AttestationStatus {
   complete = 'complete',

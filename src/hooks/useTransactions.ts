@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { DEFAULT_API_DELAY, DEFAULT_BLOCKCHAIN_DELAY } from '@/constants';
-import { Chain } from '@/constants/chains';
+import { DEFAULT_API_DELAY } from '@/constants';
+import { Chain } from '@/constants';
 import { useEVMCCTP } from './useEvmCCTP';
 import { useSolanaCCTP } from './useSolanaCCTP';
 import { getMessageBytesFromEventLogs, getMessageHashFromBytes } from '@/utils';
 import {
   AttestationStatus,
   getAttestation,
-} from '@/services/attestationService';
-import { getMessages } from '@/solana-program/util';
+} from '@/programs/evm-program/attestationService';
+import { getMessages } from '@/programs/solana-program/util';
 
 type Transaction = {
   recipient: string;

@@ -6,12 +6,8 @@ import type { FC, ReactNode } from 'react';
 import { Web3Provider } from '@ethersproject/providers';
 import { Web3ReactProvider } from '@web3-react/core';
 import type { ExternalProvider } from '@ethersproject/providers';
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query';
-import SolanaWalletConnectionProvider from '../components/WalletConnectionProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import SolanaWalletConnectionProvider from '@/components/SolanaWalletConnectionProvider';
 
 const queryClient = new QueryClient();
 

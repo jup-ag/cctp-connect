@@ -1,8 +1,8 @@
 import { useWallet } from '@jup-ag/wallet-adapter';
 import { useMemo } from 'react';
 import { Connection } from '@solana/web3.js';
-import { createProvider } from '@/solana-program/util';
-import { SolanaCCTP } from '@/solana-program';
+import { createProvider } from '@/programs/solana-program/util';
+import { SolanaCCTP } from '@/programs/solana-program';
 
 export function useSolanaCCTP() {
   const solanaWallet = useWallet();

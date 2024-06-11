@@ -3,7 +3,7 @@ import type { Web3Provider } from '@ethersproject/providers';
 import { useQuery } from '@tanstack/react-query';
 import { useEVMCCTP } from './useEvmCCTP';
 import { formatUnits } from 'ethers/lib/utils';
-import { DEFAULT_DECIMALS } from '@/constants/tokens';
+import { DEFAULT_DECIMALS } from '@/constants';
 
 export function useEvmUSDCBalance() {
   const { chainId, account } = useWeb3React<Web3Provider>();
