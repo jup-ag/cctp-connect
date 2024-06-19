@@ -27,7 +27,6 @@ const EthereumWalletConnectButton: React.FC<{
   const switchNetwork = useCallback(
     async (chainId: number) => {
       if (library?.provider?.request == null) return;
-      console.log('runn', chainId);
 
       if (chainId != null) {
         // only attempt to switch if the state is mismatched
@@ -38,7 +37,6 @@ const EthereumWalletConnectButton: React.FC<{
             params: [{ chainId: hexChainId }],
           });
         } catch (error) {
-          console.log("error", error, CHAIN_IDS_TO_PARAMETERS, chainId);
           const switchError = error as ProviderRpcError;
 
           if (switchError.code === 4902 && chainId !== SupportedChainId.SOLANA) {
