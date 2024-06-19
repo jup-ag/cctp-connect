@@ -109,7 +109,7 @@ const MAINET_CHAIN_IDS_TO_PARAMETERS = {
       "https://avalanche-mainnet.infura.io"
     ],
     chainId: "0xa86a",
-    chainName: "Avalanche Network C-Chain"
+    chainName: "Avalanche C-Chain"
   },
   [MainnetSupportedChainId.ARB]: {
     nativeCurrency: {
@@ -142,7 +142,7 @@ const MAINET_CHAIN_IDS_TO_PARAMETERS = {
       "https://mainnet.base.org"
     ],
     chainId: "0x2105",
-    chainName: "Base Mainnet"
+    chainName: "Base"
   }
 }
 
