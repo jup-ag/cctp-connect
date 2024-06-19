@@ -90,55 +90,50 @@ const MAINNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES = {
 
 const MAINET_CHAIN_IDS_TO_PARAMETERS = {
   [MainnetSupportedChainId.ETH]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
     },
     rpcUrls: [
-      "https://mainnet.infura.io/v3/${INFURA_API_KEY}"
+      "https://mainnet.infura.io/v3/"
     ],
     chainId: "0x1",
     chainName: "Ethereum Mainnet"
   },
   [MainnetSupportedChainId.AVAX]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "AVAX",
       decimals: 18
     },
     rpcUrls: [
-      "https://api.avax.network/ext/bc/C/rpc"
+      "https://avalanche-mainnet.infura.io"
     ],
     chainId: "0xa86a",
-    chainName: "Avalanche C-Chain"
+    chainName: "Avalanche Network C-Chain"
   },
   [MainnetSupportedChainId.ARB]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
     },
     rpcUrls: [
-      "https://arbitrum-mainnet.infura.io/v3/${INFURA_API_KEY}"
+      "https://arbitrum-mainnet.infura.io"
     ],
     chainId: "0xa4b1",
     chainName: "Arbitrum One"
   },
   [MainnetSupportedChainId.OPTIMISM]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
     },
     rpcUrls: [
-      "https://mainnet.optimism.io"
+      "https://optimism-mainnet.infura.io"
     ],
     chainId: "0xa",
     chainName: "OP Mainnet"
   },
   [MainnetSupportedChainId.BASE]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
@@ -147,13 +142,12 @@ const MAINET_CHAIN_IDS_TO_PARAMETERS = {
       "https://mainnet.base.org"
     ],
     chainId: "0x2105",
-    chainName: "Base"
+    chainName: "Base Mainnet"
   }
 }
 
 const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
   [DevnetSupportedChainId.ETH]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
@@ -165,7 +159,6 @@ const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
     chainName: "Sepolia"
   },
   [DevnetSupportedChainId.AVAX]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "AVAX",
       decimals: 18
@@ -177,7 +170,6 @@ const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
     chainName: "Avalanche Fuji Testnet"
   },
   [DevnetSupportedChainId.ARB]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
@@ -189,7 +181,6 @@ const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
     chainName: "Arbitrum Sepolia"
   },
   [DevnetSupportedChainId.OPTIMISM]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
@@ -201,7 +192,6 @@ const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
     chainName: "OP Sepolia Testnet"
   },
   [DevnetSupportedChainId.BASE]: {
-    iconUrls: [],
     nativeCurrency: {
       symbol: "ETH",
       decimals: 18
