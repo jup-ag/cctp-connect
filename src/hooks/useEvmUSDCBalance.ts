@@ -5,14 +5,14 @@ import { useEVMCCTP } from './useEvmCCTP';
 import { formatUnits } from 'ethers/lib/utils';
 import { DEFAULT_DECIMALS } from '@/constants';
 
-export function useEvmUSDCBalance() {
+export function useEvmUSDCBalance(selectedChainId: number) {
   const { chainId, account } = useWeb3React<Web3Provider>();
   const evmCCTP = useEVMCCTP();
 
   return useQuery({
     queryKey: ['usdc-balance', chainId, account],
     queryFn: async () => {
-      if (!account || !evmCCTP || !chainId) {
+      if (!account || !evmCCTP || !chainId || chainId !== selectedChainId) {
         return 0;
       }
       try {
