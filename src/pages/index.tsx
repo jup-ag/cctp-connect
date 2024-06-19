@@ -26,7 +26,7 @@ const Transfer: React.FC = () => {
   const [amount, setAmount] = useState('');
 
   const { data: evmUSDCBalance, refetch: refetchEvmUSDCBalance } =
-    useEvmUSDCBalance();
+    useEvmUSDCBalance(selectedChainId);
 
   const { data: solanaUSDCBalance, refetch: refetchSolanaUSDCBalance } =
     useSolanaUSDCBalance();

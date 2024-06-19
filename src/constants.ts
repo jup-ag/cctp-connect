@@ -88,11 +88,139 @@ const MAINNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES = {
   [MainnetSupportedChainId.BASE]: '0xAD09780d193884d503182aD4588450C416D6F9D4',
 };
 
-export const SupportedChainId = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ?  MainnetSupportedChainId : DevnetSupportedChainId
+const MAINET_CHAIN_IDS_TO_PARAMETERS = {
+  [MainnetSupportedChainId.ETH]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://mainnet.infura.io/v3/${INFURA_API_KEY}"
+    ],
+    chainId: "0x1",
+    chainName: "Ethereum Mainnet"
+  },
+  [MainnetSupportedChainId.AVAX]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "AVAX",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://api.avax.network/ext/bc/C/rpc"
+    ],
+    chainId: "0xa86a",
+    chainName: "Avalanche C-Chain"
+  },
+  [MainnetSupportedChainId.ARB]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://arbitrum-mainnet.infura.io/v3/${INFURA_API_KEY}"
+    ],
+    chainId: "0xa4b1",
+    chainName: "Arbitrum One"
+  },
+  [MainnetSupportedChainId.OPTIMISM]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://mainnet.optimism.io"
+    ],
+    chainId: "0xa",
+    chainName: "OP Mainnet"
+  },
+  [MainnetSupportedChainId.BASE]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://mainnet.base.org"
+    ],
+    chainId: "0x2105",
+    chainName: "Base"
+  }
+}
 
-export const CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ?  MAINNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES : DEVNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES
-export const CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ?  MAINNET_CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES : DEVNET_CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES
-export const CHAIN_IDS_TO_USDC_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ?  MAINET_CHAIN_IDS_TO_USDC_ADDRESSES : DEVNET_CHAIN_IDS_TO_USDC_ADDRESSES;
+const DEVNET_CHAIN_IDS_TO_PARAMETERS = {
+  [DevnetSupportedChainId.ETH]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://rpc.sepolia.org"
+    ],
+    chainId: "0xaa36a7",
+    chainName: "Sepolia"
+  },
+  [DevnetSupportedChainId.AVAX]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "AVAX",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://api.avax-test.network/ext/bc/C/rpc"
+    ],
+    chainId: "0xa869",
+    chainName: "Avalanche Fuji Testnet"
+  },
+  [DevnetSupportedChainId.ARB]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://sepolia-rollup.arbitrum.io/rpc"
+    ],
+    chainId: "0x66eee",
+    chainName: "Arbitrum Sepolia"
+  },
+  [DevnetSupportedChainId.OPTIMISM]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://sepolia.optimism.io"
+    ],
+    chainId: "0xaa37dc",
+    chainName: "OP Sepolia Testnet"
+  },
+  [DevnetSupportedChainId.BASE]: {
+    iconUrls: [],
+    nativeCurrency: {
+      symbol: "ETH",
+      decimals: 18
+    },
+    rpcUrls: [
+      "https://sepolia.base.org"
+    ],
+    chainId: "0x14a34",
+    chainName: "Base Sepolia Testnet"
+  }
+}
+
+
+export const SupportedChainId = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ? MainnetSupportedChainId : DevnetSupportedChainId
+
+export const CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ? MAINNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES : DEVNET_CHAIN_IDS_TO_MESSAGE_TRANSMITTER_ADDRESSES
+export const CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ? MAINNET_CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES : DEVNET_CHAIN_IDS_TO_TOKEN_MESSENGER_ADDRESSES
+export const CHAIN_IDS_TO_USDC_ADDRESSES = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ? MAINET_CHAIN_IDS_TO_USDC_ADDRESSES : DEVNET_CHAIN_IDS_TO_USDC_ADDRESSES;
+export const CHAIN_IDS_TO_PARAMETERS = process.env.NEXT_PUBLIC_CLUSTER === 'mainnet' ? MAINET_CHAIN_IDS_TO_PARAMETERS : DEVNET_CHAIN_IDS_TO_PARAMETERS;
 
 export const DEFAULT_BLOCKCHAIN_DELAY = 1000; // polling every second
 export const DEFAULT_API_DELAY = 5000; // polling every 5 second
