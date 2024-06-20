@@ -147,18 +147,18 @@ export function useTransactions(toChain: Chain, receivedAddress?: string) {
 
   const removeTransaction = useCallback(
     (hash: string) => {
-      setTransactions((transactions) => {
-        return transactions.map((t) => {
-          if (t.hash !== hash) {
-            return t;
-          }
+      // setTransactions((transactions) => {
+      //   return transactions.map((t) => {
+      //     if (t.hash !== hash) {
+      //       return t;
+      //     }
 
-          return {
-            ...t,
-            redeemedAt: new Date(),
-          };
-        });
-      });
+      //     return {
+      //       ...t,
+      //       redeemedAt: new Date(),
+      //     };
+      //   });
+      // });
     },
     [setTransactions]
   );
