@@ -157,8 +157,6 @@ export const getReceiveMessagePdas = async (
     '__event_authority',
     tokenMessengerMinterProgram.programId
   );
-
-  console.log("log", nonce, remoteDomain, messageTransmitterAccount.publicKey.toBase58());
   
   const usedNonces = await messageTransmitterProgram.methods
     .getNoncePda({
