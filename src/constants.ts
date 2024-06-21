@@ -214,7 +214,7 @@ export const CHAIN_IDS_TO_PARAMETERS = process.env.NEXT_PUBLIC_CLUSTER === 'main
 
 export const DEFAULT_BLOCKCHAIN_DELAY = 1000; // polling every second
 export const DEFAULT_API_DELAY = 5000; // polling every 5 second
-export const IRIS_ATTESTATION_API_URL = process.env.NEXT_PUBLIC_IRIS_API_URL;
+export const IRIS_ATTESTATION_API_URL = process.env.NEXT_PUBLIC_IRIS_API_URL || 'https://iris-api-sandbox.circle.com';
 export const SOLANA_API_URL = process.env.NEXT_PUBLIC_SOLANA_API_URL || 'https://api.devnet.solana.com';
 export const DEFAULT_DECIMALS = 6; // USDC
 
