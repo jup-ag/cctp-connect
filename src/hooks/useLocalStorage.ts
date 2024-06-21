@@ -1,48 +1,40 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-export function useLocalStorage<T>(key: string, defaultState: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+export function useLocalStorage<T>(
+  key: string,
+  defaultState: T
+): [T, React.Dispatch<React.SetStateAction<T>>] {
   // To sync up with SSR/SSG, we need to make subsequent load on the client side.
   const [firstLoadDone, setFirstLoadDone] = useState(false);
 
   const [value, setValue] = useState<T>(defaultState);
 
   useEffect(() => {
-    if (firstLoadDone) {
-      return;
-    }
+    setFirstLoadDone(true);
+  }, []);
 
-    try {
-      const value = localStorage.getItem(key);
-      if (value) {
-        setValue(JSON.parse(value) as T);
-      }
-    } catch (error) {
-      if (typeof window !== 'undefined') {
-        console.error(error);
-      }
-    } finally {
-      setFirstLoadDone(true);
-    }
-  }, [key, defaultState]);
-
-  const isFirstRender = useRef(true);
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (!firstLoadDone) {
       return;
     }
+    let value: T;
     try {
-      if (value === null || value === undefined) {
-        localStorage.removeItem(key);
-      } else {
-        localStorage.setItem(key, JSON.stringify(value));
-      }
-    } catch (error) {
-      if (typeof window !== 'undefined') {
-        console.error(error);
-      }
+      value = JSON.parse(localStorage.getItem(key)!) as any;
+    } catch (e) {
+      value = defaultState;
     }
-  }, [value, firstLoadDone]);
+    setValue(value);
+  }, [key, firstLoadDone]);
 
-  return [value, setValue];
+  const updateValue = (v: any) => {
+    let newValue: T;
+    if (typeof v === 'function') {
+      newValue = v(value);
+    } else {
+      newValue = v;
+    }
+    setValue(newValue);
+    localStorage.setItem(key, JSON.stringify(newValue));
+  };
+  return [value, updateValue];
 }
