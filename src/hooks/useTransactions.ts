@@ -49,6 +49,7 @@ export function useTransactions(toChain: Chain, receivedAddress?: string) {
     if (pendingTransaction) {
       let message: string;
       let messageHash: string;
+
       const interval = setInterval(async () => {
         if (pendingTransaction.fromChain !== Chain.SOLANA) {
           // evm transaction
@@ -147,18 +148,18 @@ export function useTransactions(toChain: Chain, receivedAddress?: string) {
 
   const removeTransaction = useCallback(
     (hash: string) => {
-      // setTransactions((transactions) => {
-      //   return transactions.map((t) => {
-      //     if (t.hash !== hash) {
-      //       return t;
-      //     }
+      setTransactions((transactions) => {
+        return transactions.map((t) => {
+          if (t.hash !== hash) {
+            return t;
+          }
 
-      //     return {
-      //       ...t,
-      //       redeemedAt: new Date(),
-      //     };
-      //   });
-      // });
+          return {
+            ...t,
+            redeemedAt: new Date(),
+          };
+        });
+      });
     },
     [setTransactions]
   );

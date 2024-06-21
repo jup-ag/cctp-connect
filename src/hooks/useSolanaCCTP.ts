@@ -10,7 +10,8 @@ export function useSolanaCCTP() {
   const provider = useMemo(() => {
     const connection = new Connection(SOLANA_API_URL);
     const provider = createProvider(solanaWallet, connection, {
-      commitment: 'confirmed',
+      commitment: 'processed',
+      confirmTransactionInitialTimeout: 2 * 60 * 1000
     });
 
     return provider;
