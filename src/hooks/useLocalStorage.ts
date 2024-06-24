@@ -19,7 +19,11 @@ export function useLocalStorage<T>(
     }
     let value: T;
     try {
-      value = JSON.parse(localStorage.getItem(key)!) as any;
+      if (!localStorage.getItem(key)) {
+        value = defaultState;
+      } else {
+        value = JSON.parse(localStorage.getItem(key)!) as any;
+      }
     } catch (e) {
       value = defaultState;
     }
