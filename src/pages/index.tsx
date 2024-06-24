@@ -109,10 +109,10 @@ const Transfer: React.FC = () => {
           recipient: isSwapped ? account! : solanaWallet.publicKey!.toBase58(),
         };
       } catch (e) {
-        console.error(e)
-        throw e
+        console.error(e);
+        throw e;
       }
-    }
+    },
   });
 
   const { mutate: receiveMessage, isPending: isReceiving } = useMutation({
@@ -140,7 +140,7 @@ const Transfer: React.FC = () => {
 
           return res;
         } catch (e) {
-          console.error(e)
+          console.error(e);
           throw e;
         }
       }
@@ -221,11 +221,11 @@ const Transfer: React.FC = () => {
             onChange={(e) => setAmount(e.target.value)}
           />
           {isSwapped ||
-            (usdcAllowance && amount && Number(amount) <= usdcAllowance) ? (
+          (usdcAllowance && amount && Number(amount) <= usdcAllowance) ? (
             <button
               disabled={
                 !amount ||
-                !usdcAllowance ||
+                (!isSwapped && !usdcAllowance) ||
                 !solanaWallet.publicKey ||
                 isDepositing
               }
@@ -292,8 +292,8 @@ const Transfer: React.FC = () => {
                   {!transaction.readyToRedeem
                     ? 'Pending'
                     : isReceiving
-                      ? 'Redeeming'
-                      : `Redeem`}
+                    ? 'Redeeming'
+                    : `Redeem`}
                 </button>
               </div>
             );
