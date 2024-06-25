@@ -49,6 +49,7 @@ export function useTransactions(toChain: Chain, receivedAddress?: string) {
     if (pendingTransaction) {
       let message: string;
       let messageHash: string;
+
       const interval = setInterval(async () => {
         if (pendingTransaction.fromChain !== Chain.SOLANA) {
           // evm transaction

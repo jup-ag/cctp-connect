@@ -26,10 +26,10 @@ import {
 import Decimal from 'decimal.js';
 
 export const IRIS_API_URL =
-  process.env.IRIS_API_URL ?? 'https://iris-api-sandbox.circle.com';
+  process.env.NEXT_PUBLIC_IRIS_API_URL ?? 'https://iris-api-sandbox.circle.com';
 export const SOLANA_SRC_DOMAIN_ID = 5;
 export const SOLANA_USDC_ADDRESS =
-  process.env.SOLANA_USDC_ADDRESS ??
+  process.env.NEXT_PUBLIC_SOLANA_USDC_ADDRESS ??
   '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
 
 export interface FindProgramAddressResponse {
@@ -157,7 +157,7 @@ export const getReceiveMessagePdas = async (
     '__event_authority',
     tokenMessengerMinterProgram.programId
   );
-
+  
   const usedNonces = await messageTransmitterProgram.methods
     .getNoncePda({
       nonce: new anchor.BN(nonce),

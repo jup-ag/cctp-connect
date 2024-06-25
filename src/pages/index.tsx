@@ -26,7 +26,7 @@ const Transfer: React.FC = () => {
   const [amount, setAmount] = useState('');
 
   const { data: evmUSDCBalance, refetch: refetchEvmUSDCBalance } =
-    useEvmUSDCBalance();
+    useEvmUSDCBalance(selectedChainId);
 
   const { data: solanaUSDCBalance, refetch: refetchSolanaUSDCBalance } =
     useSolanaUSDCBalance();
@@ -85,28 +85,33 @@ const Transfer: React.FC = () => {
       }
 
       let result: string;
+      try {
+        if (isSwapped) {
+          result = await solanaCCTP.depositForBurn({
+            destinationDomain: DestinationDomain[selectedEvmChain],
+            amount: Number(amount),
+            recipient: account!,
+          });
+        } else {
+          const [recipient] = await solanaCCTP.getOrCreateUSDCATAInstruction();
+          result = await evmCCTP!.depositForBurn({
+            amount: Number(amount),
+            chain: selectedEvmChain,
+            recipient: recipient.toBase58(),
+          });
+        }
 
-      if (isSwapped) {
-        result = await solanaCCTP.depositForBurn({
-          destinationDomain: DestinationDomain[selectedEvmChain],
+        return {
+          hash: result,
+          fromChain: isSwapped ? Chain.SOLANA : selectedEvmChain,
+          toChain: !isSwapped ? Chain.SOLANA : selectedEvmChain,
           amount: Number(amount),
-          recipient: account!,
-        });
-      } else {
-        const [recipient] = await solanaCCTP.getOrCreateUSDCATAInstruction();
-        result = await evmCCTP!.depositForBurn({
-          amount: Number(amount),
-          chain: selectedEvmChain,
-          recipient: recipient.toBase58(),
-        });
+          recipient: isSwapped ? account! : solanaWallet.publicKey!.toBase58(),
+        };
+      } catch (e) {
+        console.error(e);
+        throw e;
       }
-      return {
-        hash: result,
-        fromChain: isSwapped ? Chain.SOLANA : selectedEvmChain,
-        toChain: !isSwapped ? Chain.SOLANA : selectedEvmChain,
-        amount: Number(amount),
-        recipient: isSwapped ? account! : solanaWallet.publicKey!.toBase58(),
-      };
     },
   });
 
@@ -123,14 +128,21 @@ const Transfer: React.FC = () => {
       toChain: Chain;
     }) => {
       if (toChain === Chain.SOLANA && solanaCCTP) {
-        return solanaCCTP.receiveMessage({
-          attestation,
-          message,
-          remoteDomain: DestinationDomain[fromChain].toString(),
-          remoteUSDCAddressHex: getUSDCContractAddress(
-            SupportedChainId[fromChain]
-          ),
-        });
+        try {
+          const res = await solanaCCTP.receiveMessage({
+            attestation,
+            message,
+            remoteDomain: DestinationDomain[fromChain].toString(),
+            remoteUSDCAddressHex: getUSDCContractAddress(
+              SupportedChainId[fromChain]
+            ),
+          });
+
+          return res;
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
       }
 
       if (toChain !== Chain.SOLANA && evmCCTP && account) {
@@ -213,7 +225,7 @@ const Transfer: React.FC = () => {
             <button
               disabled={
                 !amount ||
-                !usdcAllowance ||
+                (!isSwapped && !usdcAllowance) ||
                 !solanaWallet.publicKey ||
                 isDepositing
               }
