@@ -18,7 +18,7 @@ import React, { useState } from 'react';
 const Transfer: React.FC = () => {
   const evmCCTP = useEVMCCTP();
   const solanaCCTP = useSolanaCCTP();
-  const [isSwapped, setIsSwapped] = useState(false);
+  const [isSwapped, setIsSwapped] = useState(true);
   const [selectedEvmChain, setSelectedEvmChain] = useState(Chain.ETH);
   const { account, chainId, error } = useWeb3React();
   const solanaWallet = useWallet();
@@ -171,10 +171,10 @@ const Transfer: React.FC = () => {
                 onChange={(e) => setSelectedEvmChain(e.target.value as Chain)}
                 className="select select-bordered w-full max-w-xs"
               >
-                <option value={Chain.ETH}>Ethereum Sepolia</option>
-                <option value={Chain.OPTIMISM}>Optimism Sepolia</option>
-                <option value={Chain.BASE}>Base Sepolia</option>
-                <option value={Chain.ARB}>Arb Sepolia</option>
+                <option value={Chain.ETH}>Ethereum</option>
+                <option value={Chain.OPTIMISM}>Optimism</option>
+                <option value={Chain.BASE}>Base</option>
+                <option value={Chain.ARB}>Arb</option>
               </select>
               {chainId === selectedChainId && account ? (
                 <p className="self-center">{getAddressAbbreviation(account)}</p>
