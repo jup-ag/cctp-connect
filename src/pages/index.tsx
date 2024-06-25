@@ -75,7 +75,11 @@ const Transfer: React.FC = () => {
     },
   });
 
-  const { mutate: depositForBurn, isPending: isDepositing } = useMutation({
+  const {
+    mutate: depositForBurn,
+    isPending: isDepositing,
+    error: depositError,
+  } = useMutation({
     mutationFn: async (amount: string) => {
       if (
         (!Number(amount) && isSwapped && !solanaCCTP) ||
@@ -84,30 +88,25 @@ const Transfer: React.FC = () => {
         return;
       }
 
-      let result: string;
+      let hash: string;
+
       try {
         if (isSwapped) {
-          result = await solanaCCTP.depositForBurn({
+          hash = await solanaCCTP.depositForBurn({
             destinationDomain: DestinationDomain[selectedEvmChain],
             amount: Number(amount),
             recipient: account!,
           });
         } else {
           const [recipient] = await solanaCCTP.getOrCreateUSDCATAInstruction();
-          result = await evmCCTP!.depositForBurn({
+          hash = await evmCCTP!.depositForBurn({
             amount: Number(amount),
             chain: selectedEvmChain,
             recipient: recipient.toBase58(),
           });
         }
 
-        return {
-          hash: result,
-          fromChain: isSwapped ? Chain.SOLANA : selectedEvmChain,
-          toChain: !isSwapped ? Chain.SOLANA : selectedEvmChain,
-          amount: Number(amount),
-          recipient: isSwapped ? account! : solanaWallet.publicKey!.toBase58(),
-        };
+        return hash;
       } catch (e) {
         console.error(e);
         throw e;
@@ -115,7 +114,11 @@ const Transfer: React.FC = () => {
     },
   });
 
-  const { mutate: receiveMessage, isPending: isReceiving } = useMutation({
+  const {
+    mutate: receiveMessage,
+    isPending: isReceiving,
+    error: receiveError,
+  } = useMutation({
     mutationFn: async ({
       message,
       attestation,
@@ -146,11 +149,18 @@ const Transfer: React.FC = () => {
       }
 
       if (toChain !== Chain.SOLANA && evmCCTP && account) {
-        return evmCCTP.receiveMessage({
-          message,
-          attestation,
-          chain: toChain,
-        });
+        try {
+          const res = await evmCCTP.receiveMessage({
+            message,
+            attestation,
+            chain: toChain,
+          });
+
+          return res;
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
       }
     },
   });
@@ -231,19 +241,36 @@ const Transfer: React.FC = () => {
               }
               className="btn"
               onClick={() => {
+                const fromChain = isSwapped ? Chain.SOLANA : selectedEvmChain;
+                const toChain = !isSwapped ? Chain.SOLANA : selectedEvmChain;
+                const recipient = isSwapped
+                  ? account!
+                  : solanaWallet.publicKey!.toBase58();
+
+                const transaction = {
+                  hash: '',
+                  fromChain,
+                  toChain,
+                  amount: Number(amount),
+                  recipient,
+                  message: '',
+                  attestation: '',
+                  readyToRedeem: false,
+                };
+
                 depositForBurn(amount, {
-                  onSuccess: (data) => {
+                  onSuccess: (hash) => {
                     refetchUSDCAllowance();
                     setAmount('');
-                    if (data) {
-                      addTransaction({
-                        ...data,
-                        message: '',
-                        attestation: '',
-                        readyToRedeem: false,
-                      });
-                    }
+
+                    addTransaction({
+                      ...transaction,
+                      hash: hash!,
+                    });
                     alert('Transfered successfully');
+                  },
+                  onError: () => {
+                    addTransaction({ ...transaction, failedAt: new Date() });
                   },
                 });
               }}
@@ -258,6 +285,10 @@ const Transfer: React.FC = () => {
                     refetchUSDCAllowance();
                     alert('Approved successfully');
                   },
+                  onError: () => {
+                    refetchUSDCAllowance();
+                    alert('Failed to approve');
+                  },
                 });
               }}
               disabled={!amount || !solanaWallet.publicKey || isApproving}
@@ -267,6 +298,11 @@ const Transfer: React.FC = () => {
             </button>
           )}
         </div>
+        {depositError && (
+          <div className="text-red-500">
+            Failed to transfer with error: {depositError.message}
+          </div>
+        )}
         <div>
           {transactions.map((transaction) => {
             return (
@@ -299,6 +335,11 @@ const Transfer: React.FC = () => {
             );
           })}
         </div>
+        {receiveError && (
+          <div className="text-red-500">
+            Failed to redeem with error: {receiveError.message}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ type Transaction = {
   hash: string;
   readyToRedeem: boolean;
   redeemedAt?: Date;
+  failedAt?: Date;
 };
 
 export function useTransactions(toChain: Chain, receivedAddress?: string) {
@@ -37,7 +38,8 @@ export function useTransactions(toChain: Chain, receivedAddress?: string) {
       (t) =>
         t.toChain === toChain &&
         t.recipient === receivedAddress &&
-        !t.redeemedAt
+        !t.redeemedAt &&
+        !t.failedAt
     );
   }, [transactions, receivedAddress, toChain]);
 
