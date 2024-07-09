@@ -8,9 +8,11 @@ import { SOLANA_API_URL } from '@/constants';
 export function useSolanaCCTP() {
   const solanaWallet = useWallet();
   const provider = useMemo(() => {
-    const connection = new Connection(SOLANA_API_URL);
+    const connection = new Connection(SOLANA_API_URL, {
+      confirmTransactionInitialTimeout: 2 * 60 * 1000
+    });
     const provider = createProvider(solanaWallet, connection, {
-      commitment: 'processed',
+      commitment: 'confirmed',
       confirmTransactionInitialTimeout: 2 * 60 * 1000
     });
 

@@ -218,4 +218,7 @@ export const IRIS_ATTESTATION_API_URL = process.env.NEXT_PUBLIC_IRIS_API_URL || 
 export const SOLANA_API_URL = process.env.NEXT_PUBLIC_SOLANA_API_URL || 'https://api.devnet.solana.com';
 export const DEFAULT_DECIMALS = 6; // USDC
 
-export const ALL_SUPPORTED_CHAIN_IDS = [...Object.values(SupportedChainId), ...Object.values(SupportedChainId)];
+export const ALL_SUPPORTED_CHAIN_IDS = [
+  ...Object.values(MainnetSupportedChainId),
+  ...Object.values(DevnetSupportedChainId),
+];
